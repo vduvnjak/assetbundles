@@ -1,16 +1,9 @@
 development:
   adapter: mysql2
   encoding: utf8
-  database: asset_bundle
-  username: root
-  password:
-  socket: /tmp/mysql.sock
-
-test:
-  adapter: mysql2
-  encoding: utf8
   reconnect: false
+  pool: 5
   username: root
   password:
-  database: asset_bundle_test
+  database: assetbundle
   socket: /uca/var/mysql/mysql.sock
