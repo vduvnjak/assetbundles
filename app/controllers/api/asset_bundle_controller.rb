@@ -3,27 +3,26 @@ class Api::AssetBundleController < ActionController::Base
 # POST /api/hosting/catalogs
 # Request:
 # {
-# 	catalogId: "catalogIdhash",
-# 	assetBundles: [
-#     	{
-#         	name: "Orc",
-#         	assetFileHash: "abcdef12345",
-#			      typeTreeHash: "abcdedf2341",
-#           bundleFileHash: "dsfalkds2342",
-#           bundleUrl: "http://someurl.com",
-#           dependencies: ["abcdef0","abcdef1"]
-#     	},
-#     	{
-#         	name: "Rock",
-#         	assetFileHash: "abcdef12345",
-#		        typeTreeHash: "abcdedf2341",
-#           bundleFileHash: "dsfalkds2342",
-#           bundleUrl: "http://someurl.com",
-#           dependencies: ["abcdef4","abcdef1"]
-#     	}
-# 	]
+# "catalogId":"catalogIdhash2",
+#     "assetBundles": [
+#       {
+#            "name": "Orc",
+#            "assetFileHash": "assetFileHashForOrc",
+#            "typeTreeHash": "typeTreeHashForOrc",
+#            "bundleFileHash": "bundleFileHashForOrc",
+#            "bundleUrl": "bundleUrlForOrc",
+#            "dependencies": ["Ball"]
+#       },
+#       {
+#           "name": "Rock",
+#           "assetFileHash": "assetFileHashForRock",
+#           "typeTreeHash": "typeTreeHashForRock",
+#           "bundleFileHash": "bundleFileHashForRock",
+#           "bundleUrl": "bundleUrlForRock",
+#           "dependencies": ["Orc"]
+#       } ]
 # }
-# Response "status":status
+# Response: {"catalog_id":catalog_id}, "status":status
 
   def create_catalog
     catalog_id    = params["catalogId"]
@@ -34,15 +33,17 @@ class Api::AssetBundleController < ActionController::Base
     new_record.asset_bundles = asset_bundles.to_json
     catalog_id_exists        = AssetBundle.where("catalog_id = ? ",catalog_id)
 
+    data = {}
     if !catalog_id_exists.blank?
       status = :no_content #204
     elsif new_record.save
       status = :created #201
+      data   = {"catalog_id"=>new_record.catalog_id}
     else
       status = :not_implemented #501
     end
 
-    render :json => {}.to_json, :status => status
+    render :json => data.to_json, :status => status
   end
 
 # POST /api/router/:upid
@@ -51,7 +52,7 @@ class Api::AssetBundleController < ActionController::Base
 #   catalogId: "catalogIdhash",
 #   channel: "latest" 
 # }
-# Response "status":status
+# Response: {"id":id}, "status":status
 
   def create_channel
     upid       = params["upid"]
@@ -64,15 +65,17 @@ class Api::AssetBundleController < ActionController::Base
     new_record.channel    = channel
     record_exists         = AssetChannel.where("catalog_id=? AND upid=? AND channel=?",catalog_id,upid,channel)
 
+    data = {}
     if !record_exists.blank?
       status = :no_content #204
     elsif new_record.save
       status = :created #201
+      data = {"id"=>new_record.id}
     else
       status = :not_implemented #501
     end
 
-    render :json => {}.to_json, :status => status
+    render :json => data.to_json, :status => status
   end
 
 # GET api/router/:upid?channel=greatest
