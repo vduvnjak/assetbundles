@@ -76,7 +76,7 @@ class Api::AssetBundleController < ActionController::Base
   end
 
 # GET api/router/:upid?channel=greatest
-# Response: {"catalog_id":"catalogIdhash2", "status":status}
+# Response: {"catalogId":"catalogIdhash2", "status":status}
 
   def get_catalog_id
   	upid      = params["upid"]
@@ -91,7 +91,7 @@ class Api::AssetBundleController < ActionController::Base
       status = :found #302
     end
 
-    render :json => {"catalog_id"=>catalog_id}.to_json, :status => status 
+    render :json => {"catalogId"=>catalog_id}.to_json, :status => status 
   end
 
 # POST /hosting/querygroup/:catalog_id
@@ -164,20 +164,20 @@ class Api::AssetBundleController < ActionController::Base
   def create_bundle_url_arry(db_asset,asset_bundles)
   	result =[]
   	result << db_asset if db_asset
-	# take care of dependencies by looking at db_asset
-	# [{"name"=>"Orc", "assetFileHash"=>"abcdef12345", "typeTreeHash"=>"dsfadsfa", "bundleFileHash"=>"dsfalkds2342", "dependencies"=>["Ball"]}]
-	dependencies = db_asset["dependencies"]
-	dependencies.each do |dep|
-	  # for this particular dependency, look inside of this build and get asset
-	  dep_db_asset = asset_bundles.select {|ab| ab["name"] == dep }.first
-	  result << dep_db_asset if dep_db_asset
-	end
-	result
+  	# take care of dependencies by looking at db_asset
+  	# [{"name"=>"Orc", "assetFileHash"=>"abcdef12345", "typeTreeHash"=>"dsfadsfa", "bundleFileHash"=>"dsfalkds2342", "dependencies"=>["Ball"]}]
+  	dependencies = db_asset["dependencies"]
+  	dependencies.each do |dep|
+  	  # for this particular dependency, look inside of this build and get asset
+  	  dep_db_asset = asset_bundles.select {|ab| ab["name"] == dep }.first
+  	  result << dep_db_asset if dep_db_asset
+  	end
+	  result
   end
 
 # POST /api/hosting/list/:catalog_id
 # Response:
-# {"asset_names":["Rock","Orc"], "status" : status }
+# {"assetNames":["Rock","Orc"], "status" : status }
 
 
   def get_asset_list
@@ -197,7 +197,7 @@ class Api::AssetBundleController < ActionController::Base
       status = :found
     end
 
-    render :json => {"asset_names"=>asset_names.uniq}.to_json, :status => status
+    render :json => {"assetNames"=>asset_names.uniq}.to_json, :status => status
   end
 
 # DELETE /hosting/:catalog_id
