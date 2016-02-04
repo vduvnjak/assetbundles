@@ -122,7 +122,7 @@ class Api::AssetBundleController < ActionController::Base
   	catalog_id = params["catalog_id"]
     have       = params["have"]
     need       = params["need"] # ["Rock","Orc"]
-    haves      = have.map{|r| r["name"]} # ["Orc"]
+    haves      = have.blank? ? [] : have.map{|r| r["name"]} # ["Orc"]
     not_haves  = need - haves # ["Rock"]
 
     # find hash subkeys of key "have".
