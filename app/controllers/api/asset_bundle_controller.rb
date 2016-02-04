@@ -23,7 +23,7 @@ class Api::AssetBundleController < ActionController::Base
 #     	}
 # 	]
 # }
-# Response {"status":status}
+# Response "status":status
 
   def create_catalog
     catalog_id    = params["catalogId"]
@@ -51,7 +51,7 @@ class Api::AssetBundleController < ActionController::Base
 #   catalogId: "catalogIdhash",
 #   channel: "latest" 
 # }
-# Response {"status":status}
+# Response "status":status
 
   def create_channel
     upid       = params["upid"]
@@ -76,7 +76,7 @@ class Api::AssetBundleController < ActionController::Base
   end
 
 # GET api/router/:upid?channel=greatest
-# Response: {"catalogId":"catalogIdhash2", "status":status}
+# Response: {"catalogId":"catalogIdhash2"}, "status":status
 
   def get_catalog_id
   	upid      = params["upid"]
@@ -113,7 +113,7 @@ class Api::AssetBundleController < ActionController::Base
 #   ]
 # }
 # Response: it is unique array of asset bundle objects
-# {"bundles":[bundle1,bundle2], "status" : status }
+# {"bundles":[bundle1,bundle2]}, "status" : status
 
   def querygroup_assets
   	catalog_id = params["catalog_id"]
@@ -177,7 +177,7 @@ class Api::AssetBundleController < ActionController::Base
 
 # POST /api/hosting/list/:catalog_id
 # Response:
-# {"assetNames":["Rock","Orc"], "status" : status }
+# {"assetNames":["Rock","Orc"]}, "status" : status
 
 
   def get_asset_list
@@ -201,7 +201,7 @@ class Api::AssetBundleController < ActionController::Base
   end
 
 # DELETE /hosting/:catalog_id
-# Response:{{}, "status" : status }
+# Response:{{}}, "status" : status
 
   def delete_catalog
     catalog_id = params["catalog_id"]
@@ -217,8 +217,8 @@ class Api::AssetBundleController < ActionController::Base
     render :json => {}.to_json, :status => status
   end
 
-# GET /api/hosting/list
-# Response:{{list of catalogues}, "status" : status }
+# GET /api/hosting/catalogs
+# Response:{[list of catalogues]}, "status" : status
 
 def get_catalog_list
   catalogs  = AssetBundle.all

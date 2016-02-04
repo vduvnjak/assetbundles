@@ -7,7 +7,7 @@ Rails.application.routes.draw do
     post   'hosting/querygroup/:catalog_id', :controller => 'asset_bundle', :action => 'querygroup_assets'
     get    'hosting/list/:catalog_id',       :controller => 'asset_bundle', :action => 'get_asset_list'
     delete 'hosting/:catalog_id/',           :controller => 'asset_bundle', :action => 'delete_catalog'
-    get    'hosting/list/',                  :controller => 'asset_bundle', :action => 'get_catalog_list'
+    get    'hosting/catalogs',               :controller => 'asset_bundle', :action => 'get_catalog_list'
   end
 
 end
