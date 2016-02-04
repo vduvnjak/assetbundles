@@ -8,7 +8,7 @@ class Api::AssetBundleController < ActionController::Base
 #     	{
 #         	name: "Orc",
 #         	assetFileHash: "abcdef12345",
-#			typeTreeHash: "abcdedf2341",
+#			      typeTreeHash: "abcdedf2341",
 #           bundleFileHash: "dsfalkds2342",
 #           bundleUrl: "http://someurl.com",
 #           dependencies: ["abcdef0","abcdef1"]
@@ -16,7 +16,7 @@ class Api::AssetBundleController < ActionController::Base
 #     	{
 #         	name: "Rock",
 #         	assetFileHash: "abcdef12345",
-#		    typeTreeHash: "abcdedf2341",
+#		        typeTreeHash: "abcdedf2341",
 #           bundleFileHash: "dsfalkds2342",
 #           bundleUrl: "http://someurl.com",
 #           dependencies: ["abcdef4","abcdef1"]
@@ -201,8 +201,7 @@ class Api::AssetBundleController < ActionController::Base
   end
 
 # DELETE /hosting/:catalog_id
-
-# Response: 204
+# Response:{{}, "status" : status }
 
   def delete_catalog
     catalog_id = params["catalog_id"]
@@ -217,5 +216,20 @@ class Api::AssetBundleController < ActionController::Base
 
     render :json => {}.to_json, :status => status
   end
+
+# GET /api/hosting/list
+# Response:{{list of catalogues}, "status" : status }
+
+def get_catalog_list
+  catalogs  = AssetBundle.all
+  cat_array = []
+  catalogs.each do |c|
+    cat_array<< {"catalogId"=>c.catalog_id, "assetBundles"=>c.asset_bundles}
+  end
+
+  status = :ok
+
+  render :json => cat_array.to_json, :status => status
+end
 
 end
