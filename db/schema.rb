@@ -14,19 +14,16 @@
 ActiveRecord::Schema.define(version: 20160201230524) do
 
   create_table "asset_bundles", force: :cascade do |t|
-    t.string "build_tag",     limit: 255
+    t.string "catalog_id",    limit: 255
     t.text   "asset_bundles", limit: 65535
-    t.text   "asset_names",   limit: 65535
   end
 
-  add_index "asset_bundles", ["build_tag"], name: "index_asset_bundles_on_build_tag", using: :btree
+  add_index "asset_bundles", ["catalog_id"], name: "index_asset_bundles_on_catalog_id", using: :btree
 
   create_table "asset_channels", force: :cascade do |t|
-    t.string  "version",    limit: 255
-    t.string  "build_tag",  limit: 255
-    t.string  "appid",      limit: 255
-    t.string  "channel",    limit: 255
-    t.integer "deprecated", limit: 4,   default: 0
+    t.string "catalog_id", limit: 255
+    t.string "upid",       limit: 255
+    t.string "channel",    limit: 255
   end
 
 end

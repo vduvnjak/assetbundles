@@ -1,9 +1,10 @@
 Rails.application.routes.draw do
 
-  post 'hosting/builds',                   :controller => 'asset_bundle', :action => 'save_build'
-  post 'router/:upid/:version',            :controller => 'asset_bundle', :action => 'save_channel'
-  get  'router/:upid/:channel_or_version', :controller => 'asset_bundle', :action => 'get_url'
-  post 'hosting/querygroup',               :controller => 'asset_bundle', :action => 'get_querygroup'
-  post 'hosting/list',                     :controller => 'asset_bundle', :action => 'get_list'
+  post   'hosting/catalogs',               :controller => 'asset_bundle', :action => 'create_catalog'
+  post   'router/:upid/',                  :controller => 'asset_bundle', :action => 'create_channel'
+  get    'router/:upid/',                  :controller => 'asset_bundle', :action => 'get_catalog_id'
+  post   'hosting/querygroup/:catalog_id', :controller => 'asset_bundle', :action => 'querygroup_assets'
+  get    'hosting/list/:catalog_id',       :controller => 'asset_bundle', :action => 'get_asset_list'
+  delete 'hosting/:catalog_id/',           :controller => 'asset_bundle', :action => 'delete_catalog'
 
 end

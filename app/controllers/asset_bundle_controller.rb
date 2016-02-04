@@ -1,9 +1,9 @@
 class AssetBundleController < ActionController::Base
 
-# POST hosting/builds
+# POST hosting/catalogs
 # Request:
 # {
-# 	buildTag: "/orgs/org/projects/myproject/buildtargets/target-1/builds/2",
+# 	catalogId: "catalogIdhash",
 # 	assetBundles: [
 #     	{
 #         	name: "Orc",
@@ -24,18 +24,16 @@ class AssetBundleController < ActionController::Base
 # 	]
 # }
 
-  def save_build
-    build_tag     = params["buildTag"]
+  def create_catalog
+    catalog_id    = params["catalogId"]
     asset_bundles = params["assetBundles"]
-    asset_names   = asset_bundles.map{|r| r["name"]}
 
     new_record               = AssetBundle::new
-    new_record.build_tag     = build_tag
+    new_record.catalog_id    = catalog_id
     new_record.asset_bundles = asset_bundles.to_json
-    new_record.asset_names   = asset_names.sort
-    build_tag_exists         = AssetBundle.where("build_tag = ? ",build_tag)
+    catalog_id_exists        = AssetBundle.where("catalog_id = ? ",catalog_id)
 
-    if !build_tag_exists.blank?
+    if !catalog_id_exists.blank?
       status = :no_content #204
     elsif new_record.save
       status = :created #201
@@ -43,34 +41,28 @@ class AssetBundleController < ActionController::Base
       status = :not_implemented #501
     end
 
-    respond_to do |format|
-      format.html { render :nothing => true, :status => status } 
-      format.json { render :nothing => true, :status => status } 
-    end
-
+    render :json => {}.to_json, :status => status
   end
 
-# POST /router/:upid/:version
+# POST /router/:upid
 # Request:
 # {
-#   buildTag: "tagname",
-#   channel: "latest" (default: "default")
+#   catalogId: "catalogIdhash",
+#   channel: "latest" 
 # }
 
-  def save_channel
-    appid     = params["upid"]
-    version   = params["version"]
-    build_tag = params["buildTag"]
-    channel   = params["channel"]
+  def create_channel
+    upid       = params["upid"]
+    catalog_id = params["catalogId"]
+    channel    = params["channel"]
 
     new_record            = AssetChannel::new
-    new_record.version    = version
-    new_record.build_tag  = build_tag
-    new_record.appid      = appid
+    new_record.catalog_id = catalog_id
+    new_record.upid       = upid
     new_record.channel    = channel
-    build_tag_exists      = AssetChannel.where("build_tag = ? ",build_tag)
+    record_exists         = AssetChannel.where("catalog_id=? AND upid=? AND channel=?",catalog_id,upid,channel)
 
-    if !build_tag_exists.blank?
+    if !record_exists.blank?
       status = :no_content #204
     elsif new_record.save
       status = :created #201
@@ -78,50 +70,37 @@ class AssetBundleController < ActionController::Base
       status = :not_implemented #501
     end
 
-    respond_to do |format|
-      format.html { render :nothing => true, :status => status } 
-      format.json { render :nothing => true, :status => status }
-    end
+    render :json => {}.to_json, :status => status
   end
 
-
-# GET /router/:upid/:channel_or_version
+# GET /router/:upid?channel=''
 
 # Response:
-# 304: /hosting/querygroup/:buildtag
+# 304: "catalog_id"
 
 # 410: No longer available
 # 404: Not found
 
-  def get_url
-  	appid                = params["upid"]
-    channel_or_version   = params["channel_or_version"]
-
-    channel_record = AssetChannel.where("appid = ? AND channel = ? ",appid,channel_or_version).last
-    version_record = AssetChannel.where("appid = ? AND version = ? ",appid,channel_or_version).last
-    
-    record = channel_record || version_record
+  def get_catalog_id
+  	upid      = params["upid"]
+    channel   = params["channel"]
+    record    = AssetChannel.where("upid = ? AND channel = ? ",upid,channel).last
 
     if record.blank?
+      catalog_id = ""
       status = :not_found #404
-    elsif record && record.deprecated == true
-      status = :gone #410
-    else # redirect
+    else
+      catalog_id = record.catalog_id
       status = :found #302
-      redirect_to record.build_tag and return
     end
 
-    respond_to do |format|
-      format.html { render :nothing => true, :status => status } 
-      format.json { render :nothing => true, :status => status }
-    end
+    render :json => {"catalog_id"=>catalog_id}.to_json, :status => status 
   end
 
-# POST /hosting/querygroup
+# POST /hosting/querygroup/:catalog_id
 
 # Request:
 # {
-#   buildTag: “tagname”,
 #   have:
 #   [
 #       {
@@ -142,18 +121,18 @@ class AssetBundleController < ActionController::Base
 #   bundleUrl1, bundleUrl2
 # ]
 
-  def get_querygroup
-  	build_tag  = params["buildTag"]
+  def querygroup_assets
+  	catalog_id = params["catalog_id"]
     have       = params["have"]
     need       = params["need"] # ["Rock","Orc"]
     haves      = have.map{|r| r["name"]} # ["Orc"]
     not_haves  = need - haves # ["Rock"]
 
     # find hash subkeys of key "have".
-    # Go through asset bundles for given build_tag, and compare all hash keys (assetFileHash,typeTreeHash,bundleFileHash) with ones stored in db
-    # build an array of asset objects for assets which do not have same keys, and add dependency objects to it
+    # Go through asset bundles for given catalog_id, and compare some hash keys (assetFileHash,typeTreeHash) with ones stored in db
+    # build an array of asset objects for unmatching keys, and add dependency objects to it
 
-    asset_bundles_record = AssetBundle.where("build_tag = ? ",build_tag).last
+    asset_bundles_record = AssetBundle.where("catalog_id = ? ",catalog_id).last
     asset_bundles        = JSON.parse(asset_bundles_record.asset_bundles)
     response = []
 
@@ -169,8 +148,7 @@ class AssetBundleController < ActionController::Base
 		  current_asset           = have.select {|ab| ab["name"] == asset_name }.first
 		  assetFileHashKeysMatch  = (current_asset.has_key?("assetFileHash") && db_asset.has_key?("assetFileHash") && (current_asset['assetFileHash'] == db_asset['assetFileHash'])) ? true : false
 		  typeTreeHashKeysMatch   = (current_asset.has_key?("typeTreeHash") && db_asset.has_key?("typeTreeHash") && (current_asset['typeTreeHash'] == db_asset['typeTreeHash'])) ? true : false
-		  bundleFileHashKeysMatch = (current_asset.has_key?("bundleFileHash") && db_asset.has_key?("bundleFileHash") && (current_asset['bundleFileHash'] == db_asset['bundleFileHash'])) ? true : false
-		  all_keys_match          = assetFileHashKeysMatch && typeTreeHashKeysMatch && bundleFileHashKeysMatch
+		  all_keys_match          = current_asset.has_key?("typeTreeHash") ? assetFileHashKeysMatch && typeTreeHashKeysMatch : assetFileHashKeysMatch
 
 		  response << create_bundle_url_arry(db_asset,asset_bundles) if !all_keys_match
 
@@ -186,7 +164,7 @@ class AssetBundleController < ActionController::Base
       status = :found
     end
 
-    render :json => response.flatten.uniq
+    render :json => {"bundles"=>response.flatten.uniq}.to_json, :status => status 
   end
 
   def create_bundle_url_arry(db_asset,asset_bundles)
@@ -203,23 +181,44 @@ class AssetBundleController < ActionController::Base
 	result
   end
 
-# POST /hosting/list/
-
-# Request: {}
-# {buildTag: “tagname”}
+# POST /hosting/list/:catalog_id
 
 # Response:
 # [
 #   "Rock","Orc"
 # ]
 
-  def get_list
-  	build_tag            = params["buildTag"]
-  	asset_bundles_record = AssetBundle.where("build_tag = ? ",build_tag).last
+  def get_asset_list
+  	catalog_id           = params["catalog_id"]
+  	asset_bundles_record = AssetBundle.where("catalog_id = ? ",catalog_id).last
     asset_bundles        = JSON.parse(asset_bundles_record.asset_bundles)
     asset_names          = asset_bundles.map{|r| r["name"]}
 
-  	render :json => asset_names.uniq
+    if asset_bundles.blank?
+      status = :not_found
+    else
+      status = :found
+    end
+
+    render :json => {"asset_names"=>asset_names.uniq}.to_json, :status => status
+  end
+
+# DELETE /hosting/:catalog_id
+
+# Response: 204
+
+  def delete_catalog
+    catalog_id = params["catalog_id"]
+	asset_bundles_record = AssetBundle.where("catalog_id = ? ",catalog_id).last
+	
+
+    if asset_bundles_record.destroy
+      status = :ok
+    else 
+      status = :not_ok
+    end
+
+    render :json => {}.to_json, :status => status
   end
 
 end

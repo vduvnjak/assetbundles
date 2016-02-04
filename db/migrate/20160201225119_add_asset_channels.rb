@@ -1,11 +1,9 @@
 class AddAssetChannels < ActiveRecord::Migration
   def up
     create_table :asset_channels do |t|
-      t.string :version
-      t.string :build_tag
-      t.string :appid
+      t.string :catalog_id
+      t.string :upid
       t.string :channel
-      t.integer :deprecated, :default => false
     end
   end
 
