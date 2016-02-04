@@ -1,6 +1,6 @@
-class AssetBundleController < ActionController::Base
+class Api::AssetBundleController < ActionController::Base
 
-# POST hosting/catalogs
+# POST /api/hosting/catalogs
 # Request:
 # {
 # 	catalogId: "catalogIdhash",
@@ -23,6 +23,7 @@ class AssetBundleController < ActionController::Base
 #     	}
 # 	]
 # }
+# Response {"status":status}
 
   def create_catalog
     catalog_id    = params["catalogId"]
@@ -44,12 +45,13 @@ class AssetBundleController < ActionController::Base
     render :json => {}.to_json, :status => status
   end
 
-# POST /router/:upid
+# POST /api/router/:upid
 # Request:
 # {
 #   catalogId: "catalogIdhash",
 #   channel: "latest" 
 # }
+# Response {"status":status}
 
   def create_channel
     upid       = params["upid"]
@@ -73,13 +75,8 @@ class AssetBundleController < ActionController::Base
     render :json => {}.to_json, :status => status
   end
 
-# GET /router/:upid?channel=''
-
-# Response:
-# 304: "catalog_id"
-
-# 410: No longer available
-# 404: Not found
+# GET api/router/:upid?channel=greatest
+# Response: {"catalog_id":"catalogIdhash2", "status":status}
 
   def get_catalog_id
   	upid      = params["upid"]
@@ -106,7 +103,7 @@ class AssetBundleController < ActionController::Base
 #       {
 #           name: "Orc",
 #           assetFileHash: "basdlkjfadsfa",
-#       	typeTreeHash: “dsfdsfadsf”,
+#       	  typeTreeHash: “dsfdsfadsf”,
 #           bundleFileHash: "dsfalkds2342",
 #       }, ...
 #   ],
@@ -115,11 +112,8 @@ class AssetBundleController < ActionController::Base
 #         "Rock", "Orc"
 #   ]
 # }
-
-# Response: it is unique array of bundleUrls
-# [
-#   bundleUrl1, bundleUrl2
-# ]
+# Response: it is unique array of asset bundle objects
+# {"bundles":[bundle1,bundle2], "status" : status }
 
   def querygroup_assets
   	catalog_id = params["catalog_id"]
@@ -133,7 +127,7 @@ class AssetBundleController < ActionController::Base
     # build an array of asset objects for unmatching keys, and add dependency objects to it
 
     asset_bundles_record = AssetBundle.where("catalog_id = ? ",catalog_id).last
-    asset_bundles        = JSON.parse(asset_bundles_record.asset_bundles)
+    asset_bundles        = asset_bundles_record ? JSON.parse(asset_bundles_record.asset_bundles) : []
     response = []
 
     need.each do |asset_name|
@@ -141,20 +135,20 @@ class AssetBundleController < ActionController::Base
 
       if db_asset
 
-	    if not_haves.include?(asset_name) # we dont have this asset at all get one from db asset_bundle
-	      response << create_bundle_url_arry(db_asset,asset_bundles)
-	 	else # we have asset, but must check the hashes in order to add bundle urls
-	    
-		  current_asset           = have.select {|ab| ab["name"] == asset_name }.first
-		  assetFileHashKeysMatch  = (current_asset.has_key?("assetFileHash") && db_asset.has_key?("assetFileHash") && (current_asset['assetFileHash'] == db_asset['assetFileHash'])) ? true : false
-		  typeTreeHashKeysMatch   = (current_asset.has_key?("typeTreeHash") && db_asset.has_key?("typeTreeHash") && (current_asset['typeTreeHash'] == db_asset['typeTreeHash'])) ? true : false
-		  all_keys_match          = current_asset.has_key?("typeTreeHash") ? assetFileHashKeysMatch && typeTreeHashKeysMatch : assetFileHashKeysMatch
+  	    if not_haves.include?(asset_name) # we dont have this asset at all get one from db asset_bundle
+  	      response << create_bundle_url_arry(db_asset,asset_bundles)
+    	 	else # we have asset, but must check the hashes in order to add bundle urls
+    	    
+    		  current_asset           = have.select {|ab| ab["name"] == asset_name }.first
+    		  assetFileHashKeysMatch  = (current_asset.has_key?("assetFileHash") && db_asset.has_key?("assetFileHash") && (current_asset['assetFileHash'] == db_asset['assetFileHash'])) ? true : false
+    		  typeTreeHashKeysMatch   = (current_asset.has_key?("typeTreeHash") && db_asset.has_key?("typeTreeHash") && (current_asset['typeTreeHash'] == db_asset['typeTreeHash'])) ? true : false
+    		  all_keys_match          = current_asset.has_key?("typeTreeHash") ? assetFileHashKeysMatch && typeTreeHashKeysMatch : assetFileHashKeysMatch
 
-		  response << create_bundle_url_arry(db_asset,asset_bundles) if !all_keys_match
+    		  response << create_bundle_url_arry(db_asset,asset_bundles) if !all_keys_match
 
-	 	end
+    	 	end
 
-	  end
+  	  end
 
     end
 
@@ -174,25 +168,28 @@ class AssetBundleController < ActionController::Base
 	# [{"name"=>"Orc", "assetFileHash"=>"abcdef12345", "typeTreeHash"=>"dsfadsfa", "bundleFileHash"=>"dsfalkds2342", "dependencies"=>["Ball"]}]
 	dependencies = db_asset["dependencies"]
 	dependencies.each do |dep|
-	  # for this particular dependency, look inside of this build and get bundleUrl
+	  # for this particular dependency, look inside of this build and get asset
 	  dep_db_asset = asset_bundles.select {|ab| ab["name"] == dep }.first
 	  result << dep_db_asset if dep_db_asset
 	end
 	result
   end
 
-# POST /hosting/list/:catalog_id
-
+# POST /api/hosting/list/:catalog_id
 # Response:
-# [
-#   "Rock","Orc"
-# ]
+# {"asset_names":["Rock","Orc"], "status" : status }
+
 
   def get_asset_list
   	catalog_id           = params["catalog_id"]
   	asset_bundles_record = AssetBundle.where("catalog_id = ? ",catalog_id).last
-    asset_bundles        = JSON.parse(asset_bundles_record.asset_bundles)
-    asset_names          = asset_bundles.map{|r| r["name"]}
+    if asset_bundles_record
+      asset_bundles      = JSON.parse(asset_bundles_record.asset_bundles)
+      asset_names        = asset_bundles.map{|r| r["name"]}
+    else
+      asset_bundles = []
+      asset_names = []
+    end
 
     if asset_bundles.blank?
       status = :not_found
@@ -209,10 +206,10 @@ class AssetBundleController < ActionController::Base
 
   def delete_catalog
     catalog_id = params["catalog_id"]
-	asset_bundles_record = AssetBundle.where("catalog_id = ? ",catalog_id).last
+	  asset_bundles_record = AssetBundle.where("catalog_id = ? ",catalog_id).last
 	
 
-    if asset_bundles_record.destroy
+    if asset_bundles_record && asset_bundles_record.destroy
       status = :ok
     else 
       status = :not_ok
