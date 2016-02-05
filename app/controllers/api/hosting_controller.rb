@@ -133,8 +133,8 @@ Response:
     param :need, Array, of: String, :desc => "Names of requested asset bundles"
   def querygroup_assets
   	catalog_id = params["catalog_id"]
-    have       = params["have"]
-    need       = params["need"] # ["Rock","Orc"]
+    have       = params["have"] || []
+    need       = params["need"] || [] # ["Rock","Orc"]
     haves      = have.blank? ? [] : have.map{|r| r["name"]} # ["Orc"]
     not_haves  = need - haves # ["Rock"]
 
