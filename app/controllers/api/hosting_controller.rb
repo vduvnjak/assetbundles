@@ -6,31 +6,38 @@ class Api::HostingController < ActionController::Base
     desc ""
   end
 
-# POST /api/hosting/catalogs
-# Request:
-# {
-# "catalogId":"catalogIdhash2",
-#     "assetBundles": [
-#       {
-#            "name": "Orc",
-#            "assetFileHash": "assetFileHashForOrc",
-#            "typeTreeHash": "typeTreeHashForOrc",
-#            "bundleFileHash": "bundleFileHashForOrc",
-#            "bundleUrl": "bundleUrlForOrc",
-#            "dependencies": ["Ball"]
-#       },
-#       {
-#           "name": "Rock",
-#           "assetFileHash": "assetFileHashForRock",
-#           "typeTreeHash": "typeTreeHashForRock",
-#           "bundleFileHash": "bundleFileHashForRock",
-#           "bundleUrl": "bundleUrlForRock",
-#           "dependencies": ["Orc"]
-#       } ]
-# }
-# Response: {"catalog_id":catalog_id}, "status":status
-
   api! 'Create a new asset bundle catalog'
+  example 'POST /api/hosting/catalogs
+{
+    "catalogId": "catalogIdhash2",
+    "assetBundles": [
+        {
+            "name": "Orc",
+            "assetFileHash": "assetFileHashForOrc",
+            "typeTreeHash": "typeTreeHashForOrc",
+            "bundleFileHash": "bundleFileHashForOrc",
+            "bundleUrl": "bundleUrlForOrc",
+            "dependencies": [
+                "Ball"
+            ]
+        },
+        {
+            "name": "Rock",
+            "assetFileHash": "assetFileHashForRock",
+            "typeTreeHash": "typeTreeHashForRock",
+            "bundleFileHash": "bundleFileHashForRock",
+            "bundleUrl": "bundleUrlForRock",
+            "dependencies": [
+                "Orc"
+            ]
+        }
+    ]
+}
+
+Response:
+{
+    "catalog_id": "catalogid"
+}'
   param :catalogId, String, :desc => "Catalog ID", :required => true
   param :assetBundles, Array, :desc => "List of asset bundles" do
     param :name, String
@@ -83,28 +90,42 @@ class Api::HostingController < ActionController::Base
     assets
   end
 
-# POST api/hosting/catalogs/:catalog_id/query
-
-# Request:
-# {
-#   have:
-#   [
-#       {
-#           name: "Orc",
-#           assetFileHash: "basdlkjfadsfa",
-#       	  typeTreeHash: “dsfdsfadsf”,
-#           bundleFileHash: "dsfalkds2342",
-#       }, ...
-#   ],
-#   need:
-#   [
-#         "Rock", "Orc"
-#   ]
-# }
-# Response: it is unique array of asset bundle objects
-# {"bundles":[bundle1,bundle2]}, "status" : status
-
   api! 'Query a catalog'
+  example 'POST api/hosting/catalogs/ababad235a8cfs2454/query
+{
+    "have": [
+        {
+            "name": "Orc",
+            "assetFileHash": "basdlkjfadsfa",
+            "typeTreeHash": "dsfdsfadsf",
+            "bundleFileHash": "dsfalkds2342"
+        }
+    ],
+    "need": [
+        "Rock",
+        "Orc"
+    ]
+}
+
+Response:
+{
+    "bundles": [
+        {
+            "name": "Orc",
+            "assetFileHash": "assetFileHashForOrc",
+            "typeTreeHash": "typeTreeHashForOrc",
+            "bundleFileHash": "bundleFileHashForOrc",
+            "bundleUrl": "bundleUrlForOrc"
+        },
+        {
+            "name": "Rock",
+            "assetFileHash": "assetFileHashForRock",
+            "typeTreeHash": "typeTreeHashForRock",
+            "bundleFileHash": "bundleFileHashForRock",
+            "bundleUrl": "bundleUrlForRock"
+        }
+    ]
+}'
     param :have, Array, :desc => "Asset bundles the client already has", :required => true do
       param :name, String, :required => true
       param :assetFileHash, String
@@ -178,11 +199,16 @@ class Api::HostingController < ActionController::Base
 	  result
   end
 
-# GET /api/hosting/catalogs/:catalog_id/list
-# Response:
-# {"assetNames":["Rock","Orc"]}, "status" : status
-
   api! 'List all assets in a catalog'
+  example 'GET /api/hosting/catalogs/ababad235a8cfs2454/list
+
+Response:
+{
+    "assetNames": [
+        "Rock",
+        "Orc"
+    ]
+}'
   def get_asset_list
   	catalog_id           = params["catalog_id"]
   	asset_bundles_record = AssetBundle.where("catalog_id = ? ",catalog_id).last
@@ -204,10 +230,11 @@ class Api::HostingController < ActionController::Base
     render :json => {"assetNames"=>asset_names.uniq}.to_json, :status => status
   end
 
-# DELETE api/hosting/catalogs/:catalog_id
-# Response:{{}}, "status" : status
-
   api! 'Delete a catalog'
+  example 'DELETE api/hosting/catalogs/:catalog_id
+
+Response:
+{}'
   def delete_catalog
     catalog_id = params["catalog_id"]
 	  asset_bundles_record = AssetBundle.where("catalog_id = ? ",catalog_id).last
@@ -221,10 +248,41 @@ class Api::HostingController < ActionController::Base
     render :json => {}.to_json, :status => status
   end
 
-# GET /api/hosting/catalogs
-# Response:{[list of catalogues]}, "status" : status
-
   api! 'List all available catalogs and their contents'
+  example 'GET /api/hosting/catalogs
+
+Response:
+[
+    {
+        "catalogId": "7c8cd1ff6e8b1a3a3ebbbd4668b030b401496825",
+        "assetBundles": []
+    },
+    {
+        "catalogId": "9c0f6badebf3c830197967b85cd9720bc78f5dc6",
+        "assetBundles": [
+            {
+                "id": 1,
+                "name": "scene-bundle",
+                "assetFileHash": "9766e2500d38bde091486f9c58634f02",
+                "typeTreeHash": "1d923ba6d826e40d3b66133490c95925",
+                "bundleFileHash": "4d04f2104d8318baf7378d1fdd6ee3b7671bb8fe",
+                "bundleUrl": "https://s3.amazonaws.com/bucket/0895632b-43a2-4fd3-85f0-852d8fb807ba/4d04f2104d8318baf7378d1fdd6ee3b7671bb8fe",
+                "dependencies": [
+                    "material-bundle"
+                ]
+            },
+            {
+                "id": 2,
+                "name": "variants/myassets.hd",
+                "assetFileHash": "44f3bc1bdd0baa954730008d57ef99a7",
+                "typeTreeHash": "a7fe22443e13028af8d92cdcec24d183",
+                "bundleFileHash": "b0a960ca9d06f59e737b2bffed726a93b7e22b7e",
+                "bundleUrl": "https://s3.amazonaws.com/bucket/0895632b-43a2-4fd3-85f0-852d8fb807ba/b0a960ca9d06f59e737b2bffed726a93b7e22b7e",
+                "dependencies": []
+            }
+        ]
+    }
+]'
   def get_catalog_list
     catalogs  = AssetBundle.all
     cat_array = []

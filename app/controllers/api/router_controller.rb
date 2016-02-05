@@ -6,19 +6,25 @@ class Api::RouterController < ActionController::Base
     desc ""
   end
 
-# POST /api/router/:upid
-# Request:
-# {
-#   catalogId: "catalogIdhash",
-#   channel: "latest"
-# }
-# Response: {"id":id}, "status":status
-
   api! 'Create a new routing rule'
+  example 'POST /api/router/12345-abcde-13434-abcde
+{
+    "catalogId": "catalog",
+    "channel": "latest"
+}
+
+Response:
+{
+    "id": "id"
+}'
+  param :query, Hash, :desc => "Router query parameters" do
+    param :catalogId, String, :required => true
+    param :channel, String
+  end
   def create_channel
     upid       = params["upid"]
     catalog_id = params["catalogId"]
-    channel    = params["channel"]
+    channel    = params.has_key?("channel") ? params["channel"] : nil
 
     new_record            = AssetChannel::new
     new_record.catalog_id = catalog_id
@@ -39,10 +45,13 @@ class Api::RouterController < ActionController::Base
     render :json => data.to_json, :status => status
   end
 
-# GET api/router/:upid?channel=greatest
-# Response: {"catalogId":"catalogIdhash2"}, "status":status
-
   api! 'Lookup a catalog'
+  example 'GET api/router/12345-abcde-13434-abcdechannel=greatest
+
+Response
+{
+    "catalogId": "catalogIdhash2"
+}'
   param :channel, String, 'Query for a specific channel'
   def get_catalog_id
     upid      = params["upid"]

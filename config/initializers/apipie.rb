@@ -1,5 +1,5 @@
 Apipie.configure do |config|
-  config.app_name                = "Asset Bundle and Content Hosting Service (ABACUS)"
+  config.app_name                = "Asset Bundle and Content Update Service (ABACUS)"
   config.api_base_url            = "/api"
   config.doc_base_url            = "/docs"
   config.app_info["1.0"]          = "
