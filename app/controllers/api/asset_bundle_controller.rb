@@ -58,7 +58,7 @@ class Api::AssetBundleController < ActionController::Base
         new_asset.typeTreeHash = ab["typeTreeHash"]
         new_asset.bundleFileHash = ab["bundleFileHash"]
         new_asset.bundleUrl = ab["bundleUrl"]
-        new_asset.dependencies = ab["dependencies"].sort
+        new_asset.dependencies = ab["dependencies"].blank? ? [] : ab["dependencies"].sort
         assets<<new_asset.id if new_asset.save
       else
         assets<<db_asset.id
@@ -152,7 +152,7 @@ class Api::AssetBundleController < ActionController::Base
 
     asset_bundles_record = AssetBundle.where("catalog_id = ? ",catalog_id).last
     if asset_bundles_record
-      asset_ids     = JSON.parse(asset_bundles_record.asset_bundles)
+      asset_ids     = asset_bundles_record.asset_bundles
       asset_bundles = asset_ids ? Asset.where("id IN (?)",asset_ids).to_a : []
       #[#<Asset id: 12, name: "Orc", assetFileHash: "assetFileHashForOrc", typeTreeHash: "typeTreeHashForOrc", bundleFileHash: "bundleFileHashForOrc", bundleUrl: "bundleUrlForOrc", dependencies: "[\"Ball\", \"Rock\"]">, #<Asset id: 13, name: "Rock", assetFileHash: "assetFileHashForRock", typeTreeHash: "typeTreeHashForRock", bundleFileHash: "bundleFileHashForRock", bundleUrl: "bundleUrlForRock", dependencies: "[\"Orc\"]">]
     else
@@ -198,7 +198,7 @@ class Api::AssetBundleController < ActionController::Base
   	result << db_asset if db_asset
   	# take care of dependencies by looking at db_asset
   	# [{"name"=>"Orc", "assetFileHash"=>"abcdef12345", "typeTreeHash"=>"dsfadsfa", "bundleFileHash"=>"dsfalkds2342", "dependencies"=>["Ball"]}]
-  	dependencies = JSON.parse(db_asset["dependencies"])
+  	dependencies = db_asset["dependencies"]
   	dependencies.each do |dep|
   	  # for this particular dependency, look inside of this build and get asset
   	  dep_db_asset = asset_bundles.select {|ab| ab.name == dep }.first
@@ -216,7 +216,7 @@ class Api::AssetBundleController < ActionController::Base
   	catalog_id           = params["catalog_id"]
   	asset_bundles_record = AssetBundle.where("catalog_id = ? ",catalog_id).last
     if asset_bundles_record
-      asset_ids     = JSON.parse(asset_bundles_record.asset_bundles)
+      asset_ids     = asset_bundles_record.asset_bundles
       asset_bundles = asset_ids ? Asset.where("id IN (?)",asset_ids).to_a : []
       asset_names   = asset_bundles.map{|r| r["name"]}
     else
@@ -239,7 +239,6 @@ class Api::AssetBundleController < ActionController::Base
   def delete_catalog
     catalog_id = params["catalog_id"]
 	  asset_bundles_record = AssetBundle.where("catalog_id = ? ",catalog_id).last
-	
 
     if asset_bundles_record && asset_bundles_record.destroy
       status = :ok
@@ -257,7 +256,7 @@ def get_catalog_list
   catalogs  = AssetBundle.all
   cat_array = []
   catalogs.each do |c|
-    asset_ids     = JSON.parse(c.asset_bundles)
+    asset_ids     = c.asset_bundles
     asset_bundles = asset_ids ? Asset.where("id IN (?)",asset_ids).to_a : []
     cat_array<< {"catalogId"=>c.catalog_id, "assetBundles"=>asset_bundles}
   end
