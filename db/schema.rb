@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160201230524) do
+ActiveRecord::Schema.define(version: 20160204233105) do
 
   create_table "asset_bundles", force: :cascade do |t|
     t.string "catalog_id",    limit: 255
@@ -24,6 +24,15 @@ ActiveRecord::Schema.define(version: 20160201230524) do
     t.string "catalog_id", limit: 255
     t.string "upid",       limit: 255
     t.string "channel",    limit: 255
+  end
+
+  create_table "assets", force: :cascade do |t|
+    t.string "name",           limit: 255
+    t.string "assetFileHash",  limit: 255
+    t.string "typeTreeHash",   limit: 255
+    t.string "bundleFileHash", limit: 255
+    t.string "bundleUrl",      limit: 255
+    t.string "dependencies",   limit: 255
   end
 
 end
