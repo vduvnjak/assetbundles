@@ -118,7 +118,7 @@ class Api::AssetBundleController < ActionController::Base
     render :json => {"catalogId"=>catalog_id}.to_json, :status => status 
   end
 
-# POST /hosting/querygroup/:catalog_id
+# POST api/hosting/catalogs/:catalog_id/query
 
 # Request:
 # {
@@ -207,10 +207,9 @@ class Api::AssetBundleController < ActionController::Base
 	  result
   end
 
-# GET /api/hosting/list/:catalog_id
+# GET /api/hosting/catalogs/:catalog_id/list
 # Response:
 # {"assetNames":["Rock","Orc"]}, "status" : status
-
 
   def get_asset_list
   	catalog_id           = params["catalog_id"]
@@ -233,7 +232,7 @@ class Api::AssetBundleController < ActionController::Base
     render :json => {"assetNames"=>asset_names.uniq}.to_json, :status => status
   end
 
-# DELETE /hosting/:catalog_id
+# DELETE api/hosting/:catalog_id
 # Response:{{}}, "status" : status
 
   def delete_catalog
