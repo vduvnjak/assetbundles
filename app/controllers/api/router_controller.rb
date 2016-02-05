@@ -63,7 +63,7 @@ Response
       status = :not_found #404
     else
       catalog_id = record.catalog_id
-      status = :found #302
+      status = :ok #302
     end
 
     render :json => {"catalogId"=>catalog_id}.to_json, :status => status
