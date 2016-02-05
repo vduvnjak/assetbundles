@@ -45,6 +45,41 @@ Response:
     render :json => data.to_json, :status => status
   end
 
+
+  api! 'Update asset channel'
+  example 'PUT api/router/12345-abcde-13434-abcde
+{
+  "catalogId": "catalog",
+  "channel": "latest"
+}
+
+Response:
+{
+    "id": "id"
+}'
+  param :query, Hash, :desc => "Router query parameters" do
+    param :catalogId, String, :required => true
+    param :channel, String, 'Query for a specific channel to update'
+  end
+
+  def update_channel
+    upid       = params["upid"]
+    catalog_id = params["catalogId"]
+    channel    = params["channel"]
+    record     = AssetChannel.where("upid = ? AND catalog_id = ? ",upid,catalog_id).last
+
+    if record.blank?
+      status = :not_found #404
+    else
+      attributes = {:channel => channel}
+      record.update_attributes(attributes)
+      status = :ok #200
+    end
+
+    render :json => {"channel"=>record}.to_json, :status => status
+  end
+
+
   api! 'Lookup a catalog'
   example 'GET api/router/12345-abcde-13434-abcde?channel=greatest
 
