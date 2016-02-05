@@ -164,8 +164,8 @@ Response:
     	 	else # we have asset, but must check the hashes in order to add bundle urls
 
           current_asset           = have.select {|ab| ab["name"] == asset_name }.first
-          assetFileHashKeysMatch  = current_asset['assetFileHash'].downcase == db_asset['assetFileHash'].downcase ? true : false
-          typeTreeHashKeysMatch   = current_asset['typeTreeHash'].downcase == db_asset['typeTreeHash'].downcase ? true : false
+          assetFileHashKeysMatch  = (current_asset.has_key?('assetFileHash') && current_asset['assetFileHash'].downcase == db_asset['assetFileHash'].downcase) ? true : false
+          typeTreeHashKeysMatch   = (current_asset.has_key?('typeTreeHash') && current_asset['typeTreeHash'].downcase == db_asset['typeTreeHash'].downcase) ? true : false
     		  all_keys_match          = current_asset['typeTreeHash'].blank? ? assetFileHashKeysMatch : assetFileHashKeysMatch && typeTreeHashKeysMatch
 
     		  response << create_bundle_asset_arry(db_asset,asset_bundles) if !all_keys_match
