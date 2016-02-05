@@ -179,7 +179,7 @@ Response:
     if response == []
       status = :not_found
     else
-      status = :found
+      status = :ok
     end
 
     render :json => {"bundles"=>response.flatten.uniq}, :status => status 
@@ -224,7 +224,7 @@ Response:
     if asset_bundles.blank?
       status = :not_found
     else
-      status = :found
+      status = :ok
     end
 
     render :json => {"assetNames"=>asset_names.uniq}.to_json, :status => status
