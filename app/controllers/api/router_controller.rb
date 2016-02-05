@@ -46,7 +46,7 @@ Response:
   end
 
   api! 'Lookup a catalog'
-  example 'GET api/router/12345-abcde-13434-abcdechannel=greatest
+  example 'GET api/router/12345-abcde-13434-abcde?channel=greatest
 
 Response
 {

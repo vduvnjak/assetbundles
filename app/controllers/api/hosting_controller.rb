@@ -126,11 +126,11 @@ Response:
         }
     ]
 }'
-    param :have, Array, :desc => "Asset bundles the client already has", :required => true do
-      param :name, String, :required => true
+    param :have, Array, :desc => "Asset bundles the client already has" do
+      param :name, String
       param :assetFileHash, String
     end
-    param :need, Array, of: String, :desc => "Names of requested asset bundles", :required => true
+    param :need, Array, of: String, :desc => "Names of requested asset bundles"
   def querygroup_assets
   	catalog_id = params["catalog_id"]
     have       = params["have"]
