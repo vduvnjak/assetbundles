@@ -168,7 +168,7 @@ Response:
     		  typeTreeHashKeysMatch   = current_asset['typeTreeHash'] == db_asset['typeTreeHash'] ? true : false
     		  all_keys_match          = current_asset['typeTreeHash'].blank? ? assetFileHashKeysMatch : assetFileHashKeysMatch && typeTreeHashKeysMatch
 
-    		  response << create_bundle_url_arry(db_asset,asset_bundles) if !all_keys_match
+    		  response << create_bundle_asset_arry(db_asset,asset_bundles) if !all_keys_match
 
     	 	end
 
