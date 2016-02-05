@@ -232,7 +232,7 @@ class Api::AssetBundleController < ActionController::Base
     render :json => {"assetNames"=>asset_names.uniq}.to_json, :status => status
   end
 
-# DELETE api/hosting/:catalog_id
+# DELETE api/hosting/catalogs/:catalog_id
 # Response:{{}}, "status" : status
 
   def delete_catalog
