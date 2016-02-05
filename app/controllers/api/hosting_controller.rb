@@ -227,7 +227,7 @@ Response:
       status = :ok
     end
 
-    render :json => {"assetNames"=>asset_names.uniq}.to_json, :status => status
+    render :json => {"bundles"=>asset_names.uniq}.to_json, :status => status
   end
 
   api! 'Delete a catalog'
