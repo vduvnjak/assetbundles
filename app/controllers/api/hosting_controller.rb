@@ -1,4 +1,10 @@
-class Api::AssetBundleController < ActionController::Base
+class Api::HostingController < ActionController::Base
+
+  resource_description do
+    name "Hosting"
+    short "Provides content catalog information to clients"
+    desc ""
+  end
 
 # POST /api/hosting/catalogs
 # Request:
@@ -24,6 +30,16 @@ class Api::AssetBundleController < ActionController::Base
 # }
 # Response: {"catalog_id":catalog_id}, "status":status
 
+  api! 'Create a new asset bundle catalog'
+  param :catalogId, String, :desc => "Catalog ID", :required => true
+  param :assetBundles, Array, :desc => "List of asset bundles" do
+    param :name, String
+    param :assetFileHash, String
+    param :typeTreeHash, String
+    param :bundleFileHash, String
+    param :bundleUrl, String
+    param :dependencies, Array, of: String
+  end
   def create_catalog
     catalog_id    = params["catalogId"]
     asset_bundles = params["assetBundles"]
@@ -67,57 +83,6 @@ class Api::AssetBundleController < ActionController::Base
     assets
   end
 
-# POST /api/router/:upid
-# Request:
-# {
-#   catalogId: "catalogIdhash",
-#   channel: "latest" 
-# }
-# Response: {"id":id}, "status":status
-
-  def create_channel
-    upid       = params["upid"]
-    catalog_id = params["catalogId"]
-    channel    = params["channel"]
-
-    new_record            = AssetChannel::new
-    new_record.catalog_id = catalog_id
-    new_record.upid       = upid
-    new_record.channel    = channel
-    record_exists         = AssetChannel.where("catalog_id=? AND upid=? AND channel=?",catalog_id,upid,channel)
-
-    data = {}
-    if !record_exists.blank?
-      status = :no_content #204
-    elsif new_record.save
-      status = :created #201
-      data = {"id"=>new_record.id}
-    else
-      status = :not_implemented #501
-    end
-
-    render :json => data.to_json, :status => status
-  end
-
-# GET api/router/:upid?channel=greatest
-# Response: {"catalogId":"catalogIdhash2"}, "status":status
-
-  def get_catalog_id
-  	upid      = params["upid"]
-    channel   = params["channel"]
-    record    = AssetChannel.where("upid = ? AND channel = ? ",upid,channel).last
-
-    if record.blank?
-      catalog_id = ""
-      status = :not_found #404
-    else
-      catalog_id = record.catalog_id
-      status = :found #302
-    end
-
-    render :json => {"catalogId"=>catalog_id}.to_json, :status => status 
-  end
-
 # POST api/hosting/catalogs/:catalog_id/query
 
 # Request:
@@ -139,6 +104,12 @@ class Api::AssetBundleController < ActionController::Base
 # Response: it is unique array of asset bundle objects
 # {"bundles":[bundle1,bundle2]}, "status" : status
 
+  api! 'Query a catalog'
+    param :have, Array, :desc => "Asset bundles the client already has", :required => true do
+      param :name, String, :required => true
+      param :assetFileHash, String
+    end
+    param :need, Array, of: String, :desc => "Names of requested asset bundles", :required => true
   def querygroup_assets
   	catalog_id = params["catalog_id"]
     have       = params["have"]
@@ -211,6 +182,7 @@ class Api::AssetBundleController < ActionController::Base
 # Response:
 # {"assetNames":["Rock","Orc"]}, "status" : status
 
+  api! 'List all assets in a catalog'
   def get_asset_list
   	catalog_id           = params["catalog_id"]
   	asset_bundles_record = AssetBundle.where("catalog_id = ? ",catalog_id).last
@@ -235,6 +207,7 @@ class Api::AssetBundleController < ActionController::Base
 # DELETE api/hosting/catalogs/:catalog_id
 # Response:{{}}, "status" : status
 
+  api! 'Delete a catalog'
   def delete_catalog
     catalog_id = params["catalog_id"]
 	  asset_bundles_record = AssetBundle.where("catalog_id = ? ",catalog_id).last
@@ -251,18 +224,19 @@ class Api::AssetBundleController < ActionController::Base
 # GET /api/hosting/catalogs
 # Response:{[list of catalogues]}, "status" : status
 
-def get_catalog_list
-  catalogs  = AssetBundle.all
-  cat_array = []
-  catalogs.each do |c|
-    asset_ids     = c.asset_bundles
-    asset_bundles = asset_ids ? Asset.where("id IN (?)",asset_ids).to_a : []
-    cat_array<< {"catalogId"=>c.catalog_id, "assetBundles"=>asset_bundles}
+  api! 'List all available catalogs and their contents'
+  def get_catalog_list
+    catalogs  = AssetBundle.all
+    cat_array = []
+    catalogs.each do |c|
+      asset_ids     = c.asset_bundles
+      asset_bundles = asset_ids ? Asset.where("id IN (?)",asset_ids).to_a : []
+      cat_array<< {"catalogId"=>c.catalog_id, "assetBundles"=>asset_bundles}
+    end
+
+    status = :ok
+
+    render :json => cat_array.to_json, :status => status
   end
-
-  status = :ok
-
-  render :json => cat_array.to_json, :status => status
-end
 
 end
